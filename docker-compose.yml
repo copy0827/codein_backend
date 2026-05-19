@@ -1,0 +1,75 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: codein
+      POSTGRES_PASSWORD: codein
+      POSTGRES_DB: codein
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    networks:
+      - codein
+
+  backend:
+    build: ./backend
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      - postgres
+    expose:
+      - "8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./media:/app/media
+    networks:
+      - codein
+
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    restart: always
+    volumes:
+      - ./nginx/certbot:/var/www/certbot
+      - ./nginx/ssl:/etc/letsencrypt
+    ports:
+      - "80:80"
+      - "443:443"
+    depends_on:
+      - backend
+    networks:
+      - codein
+
+  certbot:
+    image: certbot/certbot
+    volumes:
+      - ./nginx/certbot:/var/www/certbot
+      - ./nginx/ssl:/etc/letsencrypt
+    entrypoint: >
+      sh -c "trap exit TERM; while :; do
+      certbot renew --webroot -w /var/www/certbot;
+      sleep 12h & wait $${!};
+      done;"
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: codein_admin
+      MINIO_ROOT_PASSWORD: codein_password123
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - codein
+
+volumes:
+  pgdata:
+  minio_data:
+
+networks:
+  codein:

@@ -1,0 +1,74 @@
+services:
+  postgres:
+    image: postgres:15
+    restart: always
+    environment:
+      POSTGRES_USER: codein
+      POSTGRES_PASSWORD: codein
+      POSTGRES_DB: codein
+    ports:
+      - "5432:5432" # 로컬 DB 툴 접속용
+    volumes:
+      - pgdata_dev:/var/lib/postgresql/data
+    networks:
+      - codein_dev
+
+  backend:
+    build: 
+      context: ./backend
+      dockerfile: Dockerfile
+    restart: always
+    env_file:
+      - ./backend/.env
+    environment:
+      - LOG_LEVEL=debug
+    depends_on:
+      - postgres
+    ports:
+      - "8000:8000"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock:ro
+      - ./backend:/app # 핫 리로드 (코드 동기화)
+      - ./media:/app/media
+    command: sh -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload --log-level debug"
+    networks:
+      - codein_dev
+
+  frontend:
+    image: node:20-alpine
+    working_dir: /app/frontend
+    restart: always
+    environment:
+      # 호스트의 백엔드가 아닌 동일 docker network상의 백엔드로 프록시 연결
+      - VITE_API_PROXY_TARGET=http://backend:8000
+    ports:
+      - "5173:5173"
+    volumes:
+      - ./frontend:/app/frontend # 핫 리로드 (코드 동기화)
+      - /app/frontend/node_modules # 호스트 node_modules 덮어쓰기 방지
+    command: sh -c "npm install && npm run dev -- --host"
+    depends_on:
+      - backend
+    networks:
+      - codein_dev
+
+  minio:
+    image: minio/minio:latest
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    environment:
+      MINIO_ROOT_USER: codein_admin
+      MINIO_ROOT_PASSWORD: codein_password123
+    volumes:
+      - minio_data_dev:/data
+    command: server /data --console-address ":9001"
+    networks:
+      - codein_dev
+
+volumes:
+  pgdata_dev:
+  minio_data_dev:
+
+networks:
+  codein_dev:
