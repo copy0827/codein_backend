@@ -20,4 +20,3 @@ CodeIn은 동아리 및 커뮤니티 관리를 위한 통합 플랫폼입니다.
 - `PROJECT_OVERVIEW.md`: 기능/권한/페이지/API 요약
 - `CODETEST_PROBLEM_GUIDE.md`: 코딩테스트 문제 등록 가이드
 - `DEPLOYMENT.md`: 배포 절차 및 운영 가이드
-# codein_new
