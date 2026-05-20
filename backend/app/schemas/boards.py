@@ -161,10 +161,36 @@ class BoardListItem(BaseModel):
 
 
 class BoardListResponse(BaseModel):
-    """목록 API 응답."""
+    """목록 API 응답 (페이지네이션 메타데이터 포함)."""
 
     total: int
+    page: int
+    size: int
+    total_pages: int
     items: List[BoardListItem]
+
+
+class GitHubCommitItem(BaseModel):
+    sha: str
+    message: str
+    author_name: Optional[str] = None
+    committed_at: datetime
+
+
+class GitHubAuthorCommitStats(BaseModel):
+    author: str
+    commit_count: int
+
+
+class BoardGitHubResponse(BaseModel):
+    """GitHub 연동 조회 응답."""
+
+    repository_name: str
+    description: Optional[str] = None
+    last_updated: Optional[datetime] = None
+    total_commits: int = 0
+    recent_commits: List[GitHubCommitItem] = Field(default_factory=list)
+    author_commit_counts: List[GitHubAuthorCommitStats] = Field(default_factory=list)
 
 
 class BoardDetailResponse(BaseModel):

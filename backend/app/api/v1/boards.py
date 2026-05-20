@@ -34,9 +34,9 @@ from app.core.storage import save_notice_attachment, delete_file
 from app.models.board import Board, NoticeTemplate, Post, PostAttachment, PostReadLog
 from app.models.user import User
 from app.schemas.board import (
-    BoardCreate,
+    BoardCreate as BoardMetaCreate,
     BoardOut,
-    BoardUpdate,
+    BoardUpdate as BoardMetaUpdate,
     NoticeListResponse,
     NoticeTemplateCreate,
     NoticeTemplateOut,
@@ -49,6 +49,16 @@ from app.schemas.board import (
     PostUpdate,
 )
 from app.schemas.user import UserSummary
+from app.schemas.boards import (
+    BoardCreate as ShowcaseBoardCreate,
+    BoardUpdate as ShowcaseBoardUpdate,
+    BoardListResponse,
+    BoardDetailResponse,
+    BoardGitHubResponse,
+    post_to_detail_response,
+)
+from app.services import board_showcase_service as showcase_service
+from app.services.github_service import fetch_repository_insights
 from app.api.v1.activity import grant_points
 from app.api.v1.notifications import notify_mentions, send_notification
 
@@ -182,11 +192,31 @@ def should_show_post(post: Post, user: Optional[User]) -> bool:
 # ============ Board Endpoints ============
 
 
-@router.get("", response_model=List[BoardOut])
-async def list_boards(
+@router.get("")
+async def list_boards_root(
+    board_type: Optional[str] = Query(
+        None, description="PROJECT 또는 BLOG — 전시/블로그 목록 조회 시 필수"
+    ),
+    page: int = Query(1, ge=1),
+    size: int = Query(20, ge=1, le=100),
+    search_keyword: Optional[str] = Query(None),
+    search_type: Optional[str] = Query("title", description="title | author"),
     db: AsyncSession = Depends(get_db),
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
+    """게시판 메타 목록 또는 Case 1(PROJECT/BLOG) 게시글 목록."""
+    if board_type:
+        is_staff = current_user and has_role(current_user.role, "staff")
+        return await showcase_service.list_showcase_posts(
+            db,
+            board_type=board_type,
+            page=page,
+            size=size,
+            search_keyword=search_keyword,
+            search_type=search_type,
+            include_unpublished=is_staff,
+        )
+
     query = select(Board).order_by(Board.order.asc(), Board.id.asc())
     is_staff = current_user and has_role(current_user.role, "staff")
     if not is_staff:
@@ -198,44 +228,82 @@ async def list_boards(
     return result.scalars().all()
 
 
-@router.post("", response_model=BoardOut, status_code=status.HTTP_201_CREATED)
-async def create_board(
-    data: BoardCreate,
+@router.post("", status_code=status.HTTP_201_CREATED)
+async def create_board_root(
+    request: Request,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_min_role("admin")),
+    current_user: User = Depends(get_current_user),
 ):
-    """Create a new board. Admin only."""
-    existing = await db.execute(select(Board).where(Board.name == data.name))
-    if existing.scalar_one_or_none():
+    """Case 1 게시글 작성 또는 게시판 메타 생성(관리자)."""
+    try:
+        body = await request.json()
+    except Exception as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="Board name already exists",
+            detail="요청 본문이 올바른 JSON이 아닙니다.",
+        ) from exc
+
+    if not isinstance(body, dict):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="요청 본문 형식이 올바르지 않습니다.",
         )
 
-    # Auto-assign order
-    max_order_result = await db.execute(select(func.max(Board.order)))
-    max_order = max_order_result.scalar() or 0
+    showcase_type = str(body.get("board_type", "")).upper()
+    if "title" in body and showcase_type in showcase_service.SHOWCASE_TYPES:
+        data = ShowcaseBoardCreate.model_validate(body)
+        await _enforce_post_create_rate_limit(f"user:{current_user.id}")
+        post = await showcase_service.create_showcase_post(
+            db, data=data, author=current_user
+        )
+        return post_to_detail_response(post, comment_count=0)
 
-    board = Board(
-        name=data.name,
-        board_type=data.board_type,
-        is_public=data.is_public,
-        order=max_order + 1,
+    if "name" in body:
+        if not has_role(current_user.role, "admin"):
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="게시판 생성은 관리자(ADMIN)만 가능합니다.",
+            )
+        data = BoardMetaCreate.model_validate(body)
+        existing = await db.execute(select(Board).where(Board.name == data.name))
+        if existing.scalar_one_or_none():
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Board name already exists",
+            )
+        max_order_result = await db.execute(select(func.max(Board.order)))
+        max_order = max_order_result.scalar() or 0
+        board = Board(
+            name=data.name,
+            board_type=data.board_type,
+            is_public=data.is_public,
+            order=max_order + 1,
+        )
+        db.add(board)
+        await db.commit()
+        await db.refresh(board)
+        return board
+
+    raise HTTPException(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        detail="게시글(title+board_type) 또는 게시판(name) 생성 요청 형식이 아닙니다.",
     )
-    db.add(board)
-    await db.commit()
-    await db.refresh(board)
-    return board
 
 
 @router.patch("/{board_id}", response_model=BoardOut)
 async def update_board(
     board_id: int,
-    data: BoardUpdate,
+    data: BoardMetaUpdate,
     db: AsyncSession = Depends(get_db),
     current_user: User = Depends(require_min_role("admin")),
 ):
     """Update a board. Admin only."""
+    if await showcase_service.is_showcase_post(db, board_id):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="전시/블로그 게시글은 PUT /boards/{id} 로 수정해주세요.",
+        )
+
     result = await db.execute(select(Board).where(Board.id == board_id))
     board = result.scalar_one_or_none()
     if not board:
@@ -245,7 +313,6 @@ async def update_board(
         )
 
     update_data = data.model_dump(exclude_unset=True)
-    before_is_blinded = post.is_blinded
     if "name" in update_data:
         existing = await db.execute(
             select(Board).where(
@@ -267,12 +334,22 @@ async def update_board(
 
 
 @router.delete("/{board_id}")
-async def delete_board(
+async def delete_board_or_showcase(
     board_id: int,
     db: AsyncSession = Depends(get_db),
-    current_user: User = Depends(require_min_role("admin")),
+    current_user: User = Depends(get_current_user),
 ):
-    """Delete a board. Admin only."""
+    """Case 1 게시글 삭제 또는 게시판 메타 삭제(관리자)."""
+    if await showcase_service.is_showcase_post(db, board_id):
+        await showcase_service.delete_showcase_post(db, board_id, user=current_user)
+        return {"message": "게시글이 삭제되었습니다."}
+
+    if not has_role(current_user.role, "admin"):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="게시판 삭제는 관리자(ADMIN)만 가능합니다.",
+        )
+
     result = await db.execute(select(Board).where(Board.id == board_id))
     board = result.scalar_one_or_none()
     if not board:
@@ -356,7 +433,39 @@ async def list_notice_posts(
     return [await post_to_out(db, post, user_id) for post in filtered_posts]
 
 
-@router.get("/{board_id}", response_model=List[PostOut])
+@router.get("/{board_id}")
+async def get_board_id_route(
+    board_id: int,
+    request: Request,
+    skip: int = Query(0, ge=0),
+    limit: int = Query(20, ge=1, le=100),
+    include_hidden: bool = False,
+    notice_only: bool = Query(False, description="Only include notice posts"),
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """
+    Case 1: board_id가 Post ID이면 상세 반환 (비로그인 가능).
+    Legacy: board_id가 Board ID이면 해당 게시판 글 목록 반환.
+    """
+    if await showcase_service.is_showcase_post(db, board_id):
+        return await showcase_service.get_showcase_post_detail(
+            db,
+            board_id,
+            current_user=current_user,
+            request=request,
+        )
+    return await _list_posts_in_board(
+        board_id=board_id,
+        skip=skip,
+        limit=limit,
+        include_hidden=include_hidden,
+        notice_only=notice_only,
+        db=db,
+        current_user=current_user,
+    )
+
+
 @router.get("/{board_id}/posts", response_model=List[PostOut])
 async def list_posts(
     board_id: int,
@@ -368,6 +477,28 @@ async def list_posts(
     current_user: Optional[User] = Depends(get_current_user_optional),
 ):
     """List posts in a board."""
+    return await _list_posts_in_board(
+        board_id=board_id,
+        skip=skip,
+        limit=limit,
+        include_hidden=include_hidden,
+        notice_only=notice_only,
+        db=db,
+        current_user=current_user,
+    )
+
+
+async def _list_posts_in_board(
+    *,
+    board_id: int,
+    skip: int,
+    limit: int,
+    include_hidden: bool,
+    notice_only: bool,
+    db: AsyncSession,
+    current_user: Optional[User],
+):
+    """List posts in a board (legacy)."""
     is_staff = current_user and has_role(current_user.role, "staff")
 
     board_result = await db.execute(select(Board).where(Board.id == board_id))
@@ -408,6 +539,43 @@ async def list_posts(
 
     user_id = current_user.id if current_user else None
     return [await post_to_out(db, post, user_id) for post in filtered_posts]
+
+
+@router.get("/{board_id}/github", response_model=BoardGitHubResponse)
+async def get_showcase_github_info(
+    board_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    """GitHub 저장소 연동 정보 조회."""
+    post = await showcase_service.get_showcase_post_for_github(
+        db, board_id, current_user=current_user
+    )
+    if not post.github_url:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="이 게시글에 등록된 GitHub URL이 없습니다.",
+        )
+    return await fetch_repository_insights(post.github_url)
+
+
+@router.put("/{board_id}", response_model=BoardDetailResponse)
+async def update_showcase_post(
+    board_id: int,
+    data: ShowcaseBoardUpdate,
+    db: AsyncSession = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+):
+    """Case 1 게시글 수정 — 작성자 또는 ADMIN."""
+    if not await showcase_service.is_showcase_post(db, board_id):
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="전시/블로그 게시글을 찾을 수 없습니다.",
+        )
+    post = await showcase_service.update_showcase_post(
+        db, board_id, data, user=current_user
+    )
+    return post_to_detail_response(post, comment_count=0)
 
 
 @router.post("/{board_id}", response_model=PostOut, status_code=status.HTTP_201_CREATED)
