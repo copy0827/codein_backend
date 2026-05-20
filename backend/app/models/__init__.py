@@ -1,6 +1,6 @@
 from app.models.base import Base
 from app.models.user import User
-from app.models.board import Board, Post
+from app.models.board import Board, Post, PostBoardType
 from app.models.comment import Comment
 from app.models.gallery import Album, Photo
 from app.models.event import Event
@@ -14,6 +14,7 @@ __all__ = [
     "User",
     "Board",
     "Post",
+    "PostBoardType",
     "Comment",
     "Album",
     "Photo",

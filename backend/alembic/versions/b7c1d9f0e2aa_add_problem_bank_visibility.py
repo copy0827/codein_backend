@@ -1,6 +1,7 @@
-from alembic import op
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
+from migration_utils import add_column_if_not_exists, drop_column_if_exists
 
 revision = "b7c1d9f0e2aa"
 down_revision = "a3f7c9b2e6d1"
@@ -9,7 +10,7 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
+    add_column_if_not_exists(
         "problem_bank",
         sa.Column(
             "is_public", sa.Boolean(), nullable=False, server_default=sa.text("true")
@@ -18,4 +19,4 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_column("problem_bank", "is_public")
+    drop_column_if_exists("problem_bank", "is_public")

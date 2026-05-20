@@ -1,5 +1,12 @@
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
+from migration_utils import (
+    add_column_if_not_exists,
+    create_foreign_key_if_not_exists,
+    drop_column_if_exists,
+    drop_foreign_key_if_exists,
+)
 
 revision = "a3f7c9b2e6d1"
 down_revision = "51feb0521647"
@@ -8,21 +15,21 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
+    add_column_if_not_exists(
         "problems", sa.Column("source_problem_bank_id", sa.Integer(), nullable=True)
     )
-    op.add_column(
+    add_column_if_not_exists(
         "test_cases",
         sa.Column("source_problem_bank_test_case_id", sa.Integer(), nullable=True),
     )
-    op.create_foreign_key(
+    create_foreign_key_if_not_exists(
         "problems_source_problem_bank_id_fkey",
         "problems",
         "problem_bank",
         ["source_problem_bank_id"],
         ["id"],
     )
-    op.create_foreign_key(
+    create_foreign_key_if_not_exists(
         "test_cases_source_problem_bank_test_case_id_fkey",
         "test_cases",
         "problem_bank_test_cases",
@@ -32,15 +39,13 @@ def upgrade():
 
 
 def downgrade():
-    op.drop_constraint(
+    drop_foreign_key_if_exists(
         "test_cases_source_problem_bank_test_case_id_fkey",
         "test_cases",
-        type_="foreignkey",
     )
-    op.drop_constraint(
+    drop_foreign_key_if_exists(
         "problems_source_problem_bank_id_fkey",
         "problems",
-        type_="foreignkey",
     )
-    op.drop_column("test_cases", "source_problem_bank_test_case_id")
-    op.drop_column("problems", "source_problem_bank_id")
+    drop_column_if_exists("test_cases", "source_problem_bank_test_case_id")
+    drop_column_if_exists("problems", "source_problem_bank_id")

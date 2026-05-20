@@ -1,5 +1,12 @@
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
+from migration_utils import (
+    add_column_if_not_exists,
+    create_foreign_key_if_not_exists,
+    drop_column_if_exists,
+    drop_foreign_key_if_exists,
+)
 
 revision = "6b838ff8246e"
 down_revision = "a3f7c9b2e6d1"
@@ -8,16 +15,22 @@ depends_on = None
 
 
 def upgrade():
-    op.add_column(
+    add_column_if_not_exists(
         "reports", sa.Column("review_started_by_id", sa.Integer(), nullable=True)
     )
-    op.add_column(
+    add_column_if_not_exists(
         "reports", sa.Column("review_started_at", sa.DateTime(), nullable=True)
     )
-    op.create_foreign_key(None, "reports", "users", ["review_started_by_id"], ["id"])
+    create_foreign_key_if_not_exists(
+        "reports_review_started_by_id_fkey",
+        "reports",
+        "users",
+        ["review_started_by_id"],
+        ["id"],
+    )
 
 
 def downgrade():
-    op.drop_constraint(None, "reports", type_="foreignkey")
-    op.drop_column("reports", "review_started_at")
-    op.drop_column("reports", "review_started_by_id")
+    drop_foreign_key_if_exists("reports_review_started_by_id_fkey", "reports")
+    drop_column_if_exists("reports", "review_started_at")
+    drop_column_if_exists("reports", "review_started_by_id")

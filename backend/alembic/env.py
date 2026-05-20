@@ -1,8 +1,11 @@
 import sys
 import os
 
-# Add parent directory to path to allow imports BEFORE any app imports
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+# Add backend root and alembic dir for app + migration_utils imports
+_alembic_dir = os.path.dirname(os.path.abspath(__file__))
+_backend_dir = os.path.dirname(_alembic_dir)
+sys.path.insert(0, _backend_dir)
+sys.path.insert(0, _alembic_dir)
 
 from logging.config import fileConfig
 from sqlalchemy import create_engine, pool

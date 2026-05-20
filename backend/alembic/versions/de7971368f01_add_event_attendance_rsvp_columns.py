@@ -1,7 +1,17 @@
+"""add event attendance rsvp columns
+
+Revision ID: de7971368f01
+Revises:
+Create Date: 2026-01-28 00:00:00.000000
+
+"""
+
 from typing import Sequence, Union
 
-from alembic import op
 import sqlalchemy as sa
+from alembic import op
+
+from migration_utils import add_column_if_not_exists, drop_column_if_exists
 
 revision: str = "de7971368f01"
 down_revision: Union[str, None] = None
@@ -10,9 +20,13 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    op.add_column("events", sa.Column("max_attendees", sa.Integer(), nullable=True))
-    op.add_column("events", sa.Column("location", sa.String(), nullable=True))
-    op.add_column(
+    add_column_if_not_exists(
+        "events", sa.Column("max_attendees", sa.Integer(), nullable=True)
+    )
+    add_column_if_not_exists(
+        "events", sa.Column("location", sa.String(), nullable=True)
+    )
+    add_column_if_not_exists(
         "events",
         sa.Column(
             "is_online",
@@ -21,12 +35,14 @@ def upgrade() -> None:
             server_default=sa.text("false"),
         ),
     )
-    op.add_column("events", sa.Column("online_link", sa.String(), nullable=True))
-    op.add_column(
+    add_column_if_not_exists(
+        "events", sa.Column("online_link", sa.String(), nullable=True)
+    )
+    add_column_if_not_exists(
         "events",
         sa.Column("registration_deadline", sa.DateTime(), nullable=True),
     )
-    op.add_column(
+    add_column_if_not_exists(
         "events",
         sa.Column(
             "allow_waitlist",
@@ -35,7 +51,7 @@ def upgrade() -> None:
             server_default=sa.text("true"),
         ),
     )
-    op.add_column(
+    add_column_if_not_exists(
         "events",
         sa.Column(
             "check_in_enabled",
@@ -44,16 +60,22 @@ def upgrade() -> None:
             server_default=sa.text("false"),
         ),
     )
-    op.add_column(
-        "events", sa.Column("check_in_code", sa.String(length=64), nullable=True)
+    add_column_if_not_exists(
+        "events",
+        sa.Column("check_in_code", sa.String(length=64), nullable=True),
     )
-    op.add_column("events", sa.Column("check_in_start", sa.DateTime(), nullable=True))
-    op.add_column("events", sa.Column("check_in_end", sa.DateTime(), nullable=True))
+    add_column_if_not_exists(
+        "events", sa.Column("check_in_start", sa.DateTime(), nullable=True)
+    )
+    add_column_if_not_exists(
+        "events", sa.Column("check_in_end", sa.DateTime(), nullable=True)
+    )
 
-    op.add_column(
-        "attendance", sa.Column("waitlist_position", sa.Integer(), nullable=True)
+    add_column_if_not_exists(
+        "attendance",
+        sa.Column("waitlist_position", sa.Integer(), nullable=True),
     )
-    op.add_column(
+    add_column_if_not_exists(
         "attendance",
         sa.Column(
             "registered_at",
@@ -62,27 +84,31 @@ def upgrade() -> None:
             server_default=sa.text("now()"),
         ),
     )
-    op.add_column("attendance", sa.Column("cancelled_at", sa.DateTime(), nullable=True))
-    op.add_column("attendance", sa.Column("notes", sa.Text(), nullable=True))
-    op.add_column(
+    add_column_if_not_exists(
+        "attendance", sa.Column("cancelled_at", sa.DateTime(), nullable=True)
+    )
+    add_column_if_not_exists(
+        "attendance", sa.Column("notes", sa.Text(), nullable=True)
+    )
+    add_column_if_not_exists(
         "attendance", sa.Column("checked_in_at", sa.DateTime(), nullable=True)
     )
 
 
 def downgrade() -> None:
-    op.drop_column("attendance", "checked_in_at")
-    op.drop_column("attendance", "notes")
-    op.drop_column("attendance", "cancelled_at")
-    op.drop_column("attendance", "registered_at")
-    op.drop_column("attendance", "waitlist_position")
+    drop_column_if_exists("attendance", "checked_in_at")
+    drop_column_if_exists("attendance", "notes")
+    drop_column_if_exists("attendance", "cancelled_at")
+    drop_column_if_exists("attendance", "registered_at")
+    drop_column_if_exists("attendance", "waitlist_position")
 
-    op.drop_column("events", "check_in_end")
-    op.drop_column("events", "check_in_start")
-    op.drop_column("events", "check_in_code")
-    op.drop_column("events", "check_in_enabled")
-    op.drop_column("events", "allow_waitlist")
-    op.drop_column("events", "registration_deadline")
-    op.drop_column("events", "online_link")
-    op.drop_column("events", "is_online")
-    op.drop_column("events", "location")
-    op.drop_column("events", "max_attendees")
+    drop_column_if_exists("events", "check_in_end")
+    drop_column_if_exists("events", "check_in_start")
+    drop_column_if_exists("events", "check_in_code")
+    drop_column_if_exists("events", "check_in_enabled")
+    drop_column_if_exists("events", "allow_waitlist")
+    drop_column_if_exists("events", "registration_deadline")
+    drop_column_if_exists("events", "online_link")
+    drop_column_if_exists("events", "is_online")
+    drop_column_if_exists("events", "location")
+    drop_column_if_exists("events", "max_attendees")

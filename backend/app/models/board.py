@@ -1,3 +1,5 @@
+import enum
+
 from sqlalchemy import (
     String,
     Integer,
@@ -10,11 +12,21 @@ from sqlalchemy import (
     DDL,
 )
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.dialects.postgresql import TSVECTOR, ARRAY
+from sqlalchemy.dialects.postgresql import TSVECTOR
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.comment import Comment
+
+
+class PostBoardType(str, enum.Enum):
+    """Case 1: 프로젝트 전시(PROJECT) / 블로그(BLOG) 구분."""
+
+    PROJECT = "PROJECT"
+    BLOG = "BLOG"
 
 def _kst_now():
     return datetime.now(ZoneInfo("Asia/Seoul"))
@@ -67,6 +79,15 @@ class Post(Base):
     )  # For report system
     view_count: Mapped[int] = mapped_column(Integer, default=0)
 
+    # Case 1: 프로젝트 전시 / 블로그 (boards.board_type 과 별개)
+    board_type: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
+    tech_stack: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON array
+    period: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    github_url: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    team_info: Mapped[Optional[str]] = mapped_column(Text, nullable=True)  # JSON object/array
+    category: Mapped[Optional[str]] = mapped_column(String, nullable=True, index=True)
+    is_published: Mapped[bool] = mapped_column(Boolean, default=True)
+
     created_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), default=_kst_now)
     updated_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), nullable=True, onupdate=_kst_now
@@ -99,6 +120,12 @@ class Post(Base):
     )
     read_logs = relationship(
         "PostReadLog", back_populates="post", cascade="all, delete-orphan"
+    )
+    comments: Mapped[List["Comment"]] = relationship(
+        "Comment",
+        back_populates="post",
+        cascade="all, delete-orphan",
+        order_by="Comment.created_at",
     )
 
     __table_args__ = (

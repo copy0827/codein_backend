@@ -66,3 +66,6 @@ class CommentListResponse(BaseModel):
     comments: List[CommentOut]
     total: int
     has_more: bool
+
+
+CommentOut.model_rebuild()

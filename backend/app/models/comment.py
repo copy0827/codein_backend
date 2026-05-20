@@ -2,13 +2,15 @@
 Comment model - Supports nested comments (replies) for posts.
 """
 
-from sqlalchemy import String, Integer, Text, ForeignKey, Boolean, DateTime, Index
+from sqlalchemy import Integer, Text, ForeignKey, Boolean, DateTime, Index
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy.sql import func
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from typing import Optional, List
+from typing import Optional, List, TYPE_CHECKING
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.board import Post
 
 def _kst_now():
     return datetime.now(ZoneInfo("Asia/Seoul"))
@@ -59,6 +61,18 @@ class Comment(Base):
     )
 
     # Relationships
-    post = relationship("Post", backref="comments")
+    post: Mapped["Post"] = relationship("Post", back_populates="comments")
     author = relationship("User")
-    parent = relationship("Comment", remote_side=[id], backref="replies")
+    parent: Mapped[Optional["Comment"]] = relationship(
+        "Comment",
+        remote_side=[id],
+        back_populates="replies",
+        foreign_keys=[parent_id],
+    )
+    replies: Mapped[List["Comment"]] = relationship(
+        "Comment",
+        back_populates="parent",
+        cascade="all, delete-orphan",
+        foreign_keys=[parent_id],
+        order_by="Comment.created_at",
+    )
