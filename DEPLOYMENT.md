@@ -12,7 +12,7 @@ cd /var/www/codein
 cp backend/.env.example backend/.env
 
 docker-compose build nginx
-docker-compose up -d postgres backend nginx
+docker-compose up -d postgres minio backend nginx
 ```
 
 ## 빠른 시작 (Docker Compose)
@@ -42,7 +42,7 @@ cd ..
 docker-compose build
 
 # 서비스 실행
-docker-compose up -d postgres backend nginx
+docker-compose up -d postgres minio backend nginx
 
 # (선택) 코드 실행용 Docker 이미지 풀
 cd backend && bash scripts/pull_images.sh
@@ -59,15 +59,13 @@ cd backend && bash scripts/pull_images.sh
 | 개발용 | 백엔드 | http://localhost:8000 |
 | 개발용 | API 문서 (Swagger) | http://localhost:8000/docs |
 
-### Local dev domain mapping (nginx 확인용)
-nginx는 `server_name webserver2.codein.kr`로 구성되어 있으므로 로컬에서 확인하려면 hosts 매핑이 필요합니다.
+### Local dev domain mapping (선택)
+로컬에서는 `http://localhost`로 바로 접속할 수 있습니다. 프로덕션 도메인으로도 확인하려면 hosts에 `webserver2.codein.kr`을 추가하세요.
 
 ```bash
-# macOS/Linux
+# macOS/Linux (선택)
 sudo sh -c "echo '127.0.0.1 webserver2.codein.kr' >> /etc/hosts"
 ```
-
-이후 `http://webserver2.codein.kr`로 접속하세요.
 
 ### Frontend build vs data updates
 - 프론트 코드 변경: `docker-compose build nginx && docker-compose up -d nginx`

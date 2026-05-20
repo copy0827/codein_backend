@@ -18,6 +18,7 @@ services:
       - .env
     depends_on:
       - postgres
+      - minio
     expose:
       - "8000"
     volumes:

@@ -7,7 +7,11 @@ from app.api.v1 import router
 from app.db.init_db import init_db
 from app.utils.scheduler import scheduler_loop
 
-app = FastAPI(title=settings.APP_NAME)
+app = FastAPI(
+    title=settings.APP_NAME,
+    docs_url="/docs",
+    openapi_url="/openapi.json",
+)
 
 if settings.STORAGE_MODE == "local":
     app.mount("/media", StaticFiles(directory="media"), name="media")
