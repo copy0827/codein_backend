@@ -1,10 +1,14 @@
 from sqlalchemy import String, Integer, Boolean, Text, DateTime
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy.sql import func
 from datetime import datetime
 from zoneinfo import ZoneInfo
-from typing import Optional
+from typing import Optional, TYPE_CHECKING, List
+
 from app.models.base import Base
+
+if TYPE_CHECKING:
+    from app.models.codetest_ranking import UserCodeTestStat
 
 def _kst_now():
     return datetime.now(ZoneInfo("Asia/Seoul"))
@@ -90,4 +94,10 @@ class User(Base):
     )
     updated_at: Mapped[Optional[datetime]] = mapped_column(
         DateTime(timezone=True), onupdate=_kst_now, nullable=True
+    )
+
+    codetest_stats: Mapped[List["UserCodeTestStat"]] = relationship(
+        "UserCodeTestStat",
+        back_populates="user",
+        cascade="all, delete-orphan",
     )

@@ -64,10 +64,13 @@ from app.schemas.codetest import (
     TestParticipantStats,
 )
 from app.services.grader import Grader
+from app.services.rank_service import update_user_stats_safe
+from app.api.v1.codetest_ranking import router as codetest_ranking_router
 
 logger = logging.getLogger(__name__)
 
 router = APIRouter()
+router.include_router(codetest_ranking_router)
 
 
 @router.get("/languages", response_model=List[LanguageRuntimePublic])
@@ -1158,6 +1161,16 @@ async def submit(
 
         await db.commit()
 
+        is_correct = grade_result.result == "correct"
+        await update_user_stats_safe(
+            db=db,
+            user_id=user.id,
+            problem_id=problem_id,
+            is_correct=is_correct,
+            score=problem.points if is_correct else 0,
+            difficulty=problem.difficulty,
+        )
+
         logger.debug(
             "Submission graded user_id=%s problem_id=%s submission_id=%s result=%s",
             user.id,
@@ -1212,6 +1225,21 @@ async def submit_practice(
             code=data.code,
             language=data.language,
         )
+        is_correct = grade_result.result == "correct"
+        practice_difficulty = (
+            f"level_{problem_bank.level}"
+            if problem_bank.level
+            else (problem_bank.difficulty or "unknown")
+        )
+        await update_user_stats_safe(
+            db=db,
+            user_id=user.id,
+            problem_id=data.problem_id,
+            is_correct=is_correct,
+            score=problem_bank.points if is_correct else 0,
+            difficulty=practice_difficulty,
+        )
+
         logger.debug(
             "Practice submission graded user_id=%s problem_id=%s result=%s",
             user.id,

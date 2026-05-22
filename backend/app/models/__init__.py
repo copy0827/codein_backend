@@ -8,6 +8,10 @@ from app.models.notification import Notification
 from app.models.report import Report
 from app.models.activity import ActivityLog
 from app.models.codetest import LanguageRuntime, Test, Problem, TestCase, Submission
+from app.models.codetest_ranking import (
+    CodeTestStatPeriodType,
+    UserCodeTestStat,
+)
 
 __all__ = [
     "Base",
@@ -27,4 +31,6 @@ __all__ = [
     "Problem",
     "TestCase",
     "Submission",
+    "CodeTestStatPeriodType",
+    "UserCodeTestStat",
 ]
