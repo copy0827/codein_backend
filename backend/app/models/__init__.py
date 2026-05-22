@@ -19,6 +19,13 @@ from app.models.codetest_ranking import (
     CodeTestStatPeriodType,
     UserCodeTestStat,
 )
+from app.models.daily_attendance import (
+    Attendance,
+    AttendancePolicy,
+    DailyAttendance,
+    DEFAULT_ATTENDANCE_POLICY_ID,
+    UserAttendanceStat,
+)
 
 __all__ = [
     "Base",
@@ -45,4 +52,9 @@ __all__ = [
     "Submission",
     "CodeTestStatPeriodType",
     "UserCodeTestStat",
+    "DailyAttendance",
+    "Attendance",
+    "UserAttendanceStat",
+    "AttendancePolicy",
+    "DEFAULT_ATTENDANCE_POLICY_ID",
 ]

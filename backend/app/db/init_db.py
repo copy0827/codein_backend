@@ -6,6 +6,7 @@ from app.core.security import hash_password
 from app.db.session import engine, async_session
 from app.models.activity import ActivityLog
 from app.models.activity_recruitment import ActivityApplication, ActivityRecruitment
+from app.models.daily_attendance import AttendancePolicy, DEFAULT_ATTENDANCE_POLICY_ID
 from app.models.base import Base
 from app.models.board import Board, Post, PostReadLog
 from app.models.codetest import (
@@ -25,10 +26,29 @@ from app.models.report import Report, ReportTargetType, ReportReason, ReportStat
 from app.models.user import User
 
 
+async def _ensure_default_attendance_policy() -> None:
+    """출석 정책 id=1 시드 (Alembic 미적용 환경·create_all 대비)."""
+    async with async_session() as db:
+        existing = await db.get(AttendancePolicy, DEFAULT_ATTENDANCE_POLICY_ID)
+        if existing is None:
+            db.add(
+                AttendancePolicy(
+                    id=DEFAULT_ATTENDANCE_POLICY_ID,
+                    max_stamp_pieces=10,
+                    daily_attendance_points=10,
+                    board_complete_reward_points=100,
+                )
+            )
+            await db.commit()
+            print("Seeded default attendance policy (id=1).")
+
+
 async def init_db():
     print("Initializing database...")
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
+
+    await _ensure_default_attendance_policy()
 
     print("Checking if seeding is required...")
     async with async_session() as db:
