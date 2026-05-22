@@ -192,6 +192,24 @@ class ApplicationCreate(BaseModel):
     message: str = Field(..., min_length=1)
 
 
+class ApplicationUpdate(BaseModel):
+    """신청 승인/거절 (모집글 작성자 처리)."""
+
+    status: Literal["APPROVED", "REJECTED"]
+    process_message: Optional[str] = Field(
+        None,
+        max_length=2000,
+        description="승인·거절 시 작성자 처리 메모 (선택)",
+    )
+
+    @field_validator("status", mode="before")
+    @classmethod
+    def coerce_status(cls, value: Any) -> str:
+        if isinstance(value, ApplicationStatus):
+            return value.value
+        return str(value).upper()
+
+
 class ApplicationResponse(BaseModel):
     """신청 내역 (신청자 정보 포함)."""
 
@@ -206,6 +224,9 @@ class ApplicationResponse(BaseModel):
 
     applicant: Optional[UserSummary] = None
     activity_title: Optional[str] = Field(None, description="목록·관리 화면용 모집글 제목")
+    process_message: Optional[str] = Field(
+        None, description="작성자 승인·거절 처리 메모"
+    )
 
     @field_validator("status", mode="before")
     @classmethod
@@ -236,3 +257,16 @@ class ApplicationListResponse(BaseModel):
     page: int
     page_size: int
     total_pages: int
+
+
+class ActivityStatusPatch(BaseModel):
+    """모집글 상태 수동 변경 (CLOSED / COMPLETED)."""
+
+    recruitment_status: Literal["CLOSED", "COMPLETED"]
+
+    @field_validator("recruitment_status", mode="before")
+    @classmethod
+    def coerce_status(cls, value: Any) -> str:
+        if isinstance(value, RecruitmentStatus):
+            return value.value
+        return str(value).upper()

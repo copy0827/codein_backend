@@ -11,6 +11,7 @@ from app.api.v1 import (
     reports,
     profile,
     activity,
+    activities,
     comments,
     calendar,
     dashboard,
@@ -30,6 +31,7 @@ router.include_router(
 router.include_router(reports.router, prefix="/reports", tags=["reports"])
 router.include_router(profile.router, prefix="/profile", tags=["profile"])
 router.include_router(activity.router, prefix="/activity", tags=["activity"])
+router.include_router(activities.router, prefix="/activities", tags=["activities"])
 router.include_router(comments.router, tags=["comments"])
 router.include_router(calendar.router, prefix="/calendar", tags=["calendar"])
 router.include_router(dashboard.router, prefix="/dashboard", tags=["dashboard"])
