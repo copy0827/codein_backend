@@ -11,6 +11,7 @@ from datetime import datetime
 from typing import Any, List, Optional, Union
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
+from sqlalchemy import inspect as sa_inspect
 
 from app.models.board import PostBoardType
 from app.schemas.user import UserSummary
@@ -282,6 +283,16 @@ def _comment_to_item(comment: Any, include_replies: bool = True) -> BoardComment
     )
 
 
+def _post_comments_without_lazy_load(post: Any, comments: Optional[List[Any]]) -> List[Any]:
+    """Async 세션에서 relationship lazy load(MissingGreenlet)를 피합니다."""
+    if comments is not None:
+        return comments
+    insp = sa_inspect(post)
+    if insp.mapper and "comments" in insp.unloaded:
+        return []
+    return getattr(post, "comments", None) or []
+
+
 def post_to_list_item(post: Any, *, comment_count: int = 0) -> BoardListItem:
     """Post ORM → BoardListItem."""
     author = None
@@ -295,7 +306,7 @@ def post_to_list_item(post: Any, *, comment_count: int = 0) -> BoardListItem:
         author_id=post.author_id,
         views=post.view_count,
         comment_count=comment_count,
-        tech_stack=post.tech_stack,
+        tech_stack=_normalize_json_list(post.tech_stack) or [],
         has_github=bool(post.github_url),
         github_url=post.github_url,
         category=post.category,
@@ -318,7 +329,7 @@ def post_to_detail_response(
     author = None
     if getattr(post, "author", None):
         author = UserSummary.model_validate(post.author)
-    top_level = comments if comments is not None else getattr(post, "comments", [])
+    top_level = _post_comments_without_lazy_load(post, comments)
     comment_items = [
         _comment_to_item(c)
         for c in top_level
@@ -332,7 +343,7 @@ def post_to_detail_response(
         board_id=post.board_id,
         author_id=post.author_id,
         views=post.view_count,
-        tech_stack=post.tech_stack,
+        tech_stack=_normalize_json_list(post.tech_stack) or [],
         period=post.period,
         github_url=post.github_url,
         has_github=bool(post.github_url),

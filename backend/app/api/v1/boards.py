@@ -256,7 +256,7 @@ async def create_board_root(
         post = await showcase_service.create_showcase_post(
             db, data=data, author=current_user
         )
-        return post_to_detail_response(post, comment_count=0)
+        return post_to_detail_response(post, comments=[], comment_count=0)
 
     if "name" in body:
         if not has_role(current_user.role, "admin"):
@@ -575,7 +575,7 @@ async def update_showcase_post(
     post = await showcase_service.update_showcase_post(
         db, board_id, data, user=current_user
     )
-    return post_to_detail_response(post, comment_count=0)
+    return post_to_detail_response(post, comments=[], comment_count=0)
 
 
 @router.post("/{board_id}", response_model=PostOut, status_code=status.HTTP_201_CREATED)
