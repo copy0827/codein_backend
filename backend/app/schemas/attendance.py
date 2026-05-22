@@ -5,7 +5,7 @@
 from __future__ import annotations
 
 from datetime import date, datetime, timezone
-from typing import List, Optional
+from typing import List, Literal, Optional
 from zoneinfo import ZoneInfo
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
@@ -123,3 +123,45 @@ class AttendanceHistoryResponse(BaseModel):
     month: int = Field(..., ge=1, le=12)
     total_days_in_month: int = Field(0, description="해당 월 출석 일수")
     items: List[AttendanceHistoryItem] = Field(default_factory=list)
+
+
+AttendanceMemberStatus = Literal["ATTENDED", "ABSENT"]
+
+
+class AdminAttendanceMemberItem(BaseModel):
+    """관리자 일별 출석 현황 — 부원 1명."""
+
+    user_id: int
+    name: str
+    student_id: str
+    generation: str
+    major: str
+    role: str
+    status: AttendanceMemberStatus
+    attended_at: Optional[datetime] = Field(
+        None, description="출석 시각 (미출석 시 null)"
+    )
+
+    @field_validator("attended_at", mode="before")
+    @classmethod
+    def normalize_attended_at(cls, value: object) -> object:
+        if value is None:
+            return None
+        if isinstance(value, datetime):
+            if value.tzinfo is None:
+                return value.replace(tzinfo=timezone.utc).astimezone(KST)
+            return value.astimezone(KST)
+        return value
+
+
+class AttendanceAdminDailyStatusResponse(BaseModel):
+    """관리자 — 특정 날짜 전체 부원 출석 현황."""
+
+    target_date: date
+    total_active_members: int = Field(..., description="활성 부원 수")
+    attended_count: int = Field(..., description="해당 날짜 출석 인원")
+    absent_count: int = Field(..., description="해당 날짜 미출석 인원")
+    attendance_rate: float = Field(
+        ..., ge=0, le=100, description="출석률(%) — 활성 부원 0명이면 0"
+    )
+    members: List[AdminAttendanceMemberItem] = Field(default_factory=list)

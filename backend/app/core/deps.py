@@ -109,6 +109,16 @@ async def get_current_user_optional(
         return None
 
 
+async def get_current_admin(user: User = Depends(get_current_user)) -> User:
+    """관리자(admin) 이상 권한이 있는 로그인 사용자."""
+    if not has_role(user.role, "admin"):
+        raise HTTPException(
+            status_code=403,
+            detail="Forbidden: admin access required",
+        )
+    return user
+
+
 def require_roles(*roles: str):
     """
     Dependency factory for exact role matching.
