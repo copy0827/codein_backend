@@ -38,6 +38,15 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           <NavLink to="/board?board=notice" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">공지</NavLink>
           <NavLink to="/board?board=board" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">게시판</NavLink>
           <NavLink to="/events" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">캘린더</NavLink>
+          <NavLink to="/activities" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">
+            활동 모집
+          </NavLink>
+          <NavLink to="/activities?type=MENTORING" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors pl-6">
+            멘토-멘티
+          </NavLink>
+          <NavLink to="/activities?type=PROJECT" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors pl-6">
+            프로젝트 모집
+          </NavLink>
           <NavLink to="/gallery" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">갤러리</NavLink>
           <NavLink to="/contest" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">
             코딩테스트

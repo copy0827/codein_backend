@@ -8,6 +8,7 @@ import { getTests } from '../api/codetest';
 import { galleryApi } from '../api/gallery';
 import { useAuth } from '../context/AuthContext';
 import MyCodingTestWidget from '../components/codetest/MyCodingTestWidget';
+import ActivityRecruitmentHomeSection from '../components/activity/ActivityRecruitmentHomeSection';
 import type { Post } from '../types/board';
 import type { Event } from '../api/events';
 import type { PopularPost } from '../api/dashboard';
@@ -151,8 +152,14 @@ const HomePage: React.FC = () => {
                     <Link to="/contest/ranking" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-dark-line hover:bg-brand-light hover:text-white transition-colors text-base">
                       랭킹 보기
                     </Link>
+                    <Link to="/activities" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-emerald-600 text-white font-bold border border-dark-line hover:bg-emerald-500 transition-colors text-base">
+                      활동 모집
+                    </Link>
+                    <Link to="/activities?type=MENTORING" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-emerald-500/40 hover:bg-emerald-500/20 transition-colors text-base">
+                      멘토-멘티
+                    </Link>
                     <Link to="/events" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-brand text-white font-bold border border-dark-line hover:bg-brand-light transition-colors text-base">
-                      활동 보기
+                      일정·캘린더
                     </Link>
                     <Link to="/events" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-dark-line hover:bg-brand-light hover:text-white transition-colors text-base">
                       일정 확인
@@ -165,6 +172,9 @@ const HomePage: React.FC = () => {
                     </Link>
                     <Link to="/login" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-dark-line hover:bg-brand-light hover:text-white transition-colors text-base">
                       로그인
+                    </Link>
+                    <Link to="/activities" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-emerald-500/40 hover:bg-emerald-500/20 transition-colors text-base">
+                      활동 모집 둘러보기
                     </Link>
                   </>
                 )}
@@ -226,6 +236,14 @@ const HomePage: React.FC = () => {
                         ? `등록된 테스트 ${tests.length}개`
                         : '등록된 테스트 없음'}
                     </div>
+                  </Link>
+                  <Link to="/activities?type=PROJECT" className="p-3 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-violet-500/50 transition-colors">
+                    <div className="text-xs text-dark-muted">프로젝트 모집</div>
+                    <div className="text-sm font-bold text-dark-text mt-1.5">바로가기</div>
+                  </Link>
+                  <Link to="/activities?type=MENTORING" className="p-3 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-emerald-500/50 transition-colors">
+                    <div className="text-xs text-dark-muted">멘토-멘티</div>
+                    <div className="text-sm font-bold text-dark-text mt-1.5">바로가기</div>
                   </Link>
                   <Link to="/events" className="p-3 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-brand/50 transition-colors">
                     <div className="text-xs text-dark-muted">이번 달 일정</div>
@@ -664,7 +682,14 @@ const HomePage: React.FC = () => {
           <h2 className="text-2xl font-bold text-dark-text mb-2">바로가기</h2>
           <p className="text-dark-muted">필요한 페이지로 빠르게 이동하세요.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          <Link to="/activities" className="group p-6 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-emerald-500/50 transition-colors">
+            <h3 className="text-xl font-bold text-dark-text mb-2 group-hover:text-emerald-400 transition-colors">활동 모집</h3>
+            <p className="text-dark-muted mb-4">스터디·프로젝트·멘토-멘티</p>
+            <span className="text-sm text-brand font-medium flex items-center gap-1">
+              이동 <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
           <Link to="/board?board=board" className="group p-6 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-brand transition-colors">
             <h3 className="text-xl font-bold text-dark-text mb-2 group-hover:text-brand-light transition-colors">게시판</h3>
             <p className="text-dark-muted mb-4">자유게시판 바로가기</p>
@@ -688,6 +713,8 @@ const HomePage: React.FC = () => {
           </Link>
         </div>
       </section>
+
+      <ActivityRecruitmentHomeSection />
       </div>
     </div>
   );

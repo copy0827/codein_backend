@@ -28,6 +28,9 @@ const ProblemSolvePage = lazy(() => import('./pages/codetest/ProblemSolvePage'))
 const PracticePage = lazy(() => import('./pages/codetest/PracticePage'));
 const SubmissionHistoryPage = lazy(() => import('./pages/codetest/SubmissionHistoryPage'));
 const RankingPage = lazy(() => import('./pages/codetest/RankingPage'));
+const ActivityListPage = lazy(() => import('./pages/activity/ActivityListPage'));
+const ActivityDetailPage = lazy(() => import('./pages/activity/ActivityDetailPage'));
+const ActivityWritePage = lazy(() => import('./pages/activity/ActivityWritePage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
 const CodetestAdminPage = lazy(() => import('./pages/admin/CodetestAdminPage'));
 const CodetestTestDetailPage = lazy(() => import('./pages/admin/CodetestTestDetailPage'));
@@ -155,6 +158,9 @@ function App() {
             <Route path="/boards" element={<Navigate to="/board" replace />} />
             <Route path="/gallery/share/:token" element={<SharedAlbumPage />} />
             <Route path="/contest/ranking" element={<RankingPage />} />
+            <Route path="/activities" element={<ActivityListPage />} />
+            <Route path="/activities/write" element={<ActivityWritePage />} />
+            <Route path="/activities/:activityId" element={<ActivityDetailPage />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

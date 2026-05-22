@@ -322,6 +322,21 @@ async def create_activity(
     return _activity_to_response(activity, pending_count=0)
 
 
+@router.get("/{activity_id}", response_model=ActivityResponse)
+async def get_activity(
+    activity_id: int,
+    db: AsyncSession = Depends(get_db),
+    current_user: Optional[User] = Depends(get_current_user_optional),
+):
+    activity = await _get_activity_or_404(db, activity_id, load_owner=True)
+    await _assert_activity_visible(activity, current_user)
+
+    pending_map = await _pending_counts_by_activity(db, [activity.id])
+    return _activity_to_response(
+        activity, pending_count=pending_map.get(activity.id, 0)
+    )
+
+
 @router.post(
     "/{activity_id}/apply",
     response_model=ApplicationResponse,

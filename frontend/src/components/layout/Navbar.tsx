@@ -58,6 +58,9 @@ const Navbar: React.FC<NavbarProps> = ({ onMenuClick }) => {
           <NavLink to="/board?board=notice" className="nav-item text-sm font-medium text-dark-muted hover:text-dark-text transition-colors px-2.5 py-2 rounded-xl hover:bg-dark-nav">공지</NavLink>
           <NavLink to="/board?board=board" className="nav-item text-sm font-medium text-dark-muted hover:text-dark-text transition-colors px-2.5 py-2 rounded-xl hover:bg-dark-nav">게시판</NavLink>
           <NavLink to="/events" className="nav-item text-sm font-medium text-dark-muted hover:text-dark-text transition-colors px-2.5 py-2 rounded-xl hover:bg-dark-nav">캘린더</NavLink>
+          <NavLink to="/activities" className="nav-item text-sm font-medium text-dark-muted hover:text-dark-text transition-colors px-2.5 py-2 rounded-xl hover:bg-dark-nav">
+            활동 모집
+          </NavLink>
           <NavLink to="/gallery" className="nav-item text-sm font-medium text-dark-muted hover:text-dark-text transition-colors px-2.5 py-2 rounded-xl hover:bg-dark-nav">갤러리</NavLink>
           <NavLink to="/contest" className="nav-item text-sm font-medium text-dark-muted hover:text-dark-text transition-colors px-2.5 py-2 rounded-xl hover:bg-dark-nav">
             코딩테스트
