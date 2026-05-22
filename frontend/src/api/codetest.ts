@@ -1,14 +1,18 @@
 import api from './axios';
-import type { 
-  Test, 
-  TestDetail, 
-  Submission, 
-  Language, 
+import type {
+  Test,
+  TestDetail,
+  Submission,
+  Language,
   SubmitResult,
   PracticeProblem,
   ProblemBank,
   ProblemBankDetail,
-  ProblemDetail
+  ProblemDetail,
+  CodetestStatPeriod,
+  MyPageWidgetResponse,
+  RankingListResponse,
+  UserStatDetailResponse,
 } from '../types/codetest';
 
 export const getTests = async (language?: string): Promise<Test[]> => {
@@ -278,5 +282,34 @@ export const deleteTestCase = async (testcaseId: number): Promise<void> => {
 
 export const bragTest = async (testId: number): Promise<{ post_id: number }> => {
   const response = await api.post(`/codetest/tests/${testId}/brag`);
+  return response.data;
+};
+
+// ——— Case 2: 랭킹 및 통계 ———
+
+export const getRankingList = async (
+  period: CodetestStatPeriod = 'ALL',
+  page = 1,
+  size = 10,
+): Promise<RankingListResponse> => {
+  const response = await api.get<RankingListResponse>('/codetest/ranking', {
+    params: { period, page, size },
+  });
+  return response.data;
+};
+
+export const getUserStats = async (
+  userId: number,
+  period: CodetestStatPeriod = 'ALL',
+): Promise<UserStatDetailResponse> => {
+  const response = await api.get<UserStatDetailResponse>(
+    `/codetest/ranking/stats/${userId}`,
+    { params: { period } },
+  );
+  return response.data;
+};
+
+export const getMyWidgetData = async (): Promise<MyPageWidgetResponse> => {
+  const response = await api.get<MyPageWidgetResponse>('/codetest/ranking/widget');
   return response.data;
 };

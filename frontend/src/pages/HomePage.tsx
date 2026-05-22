@@ -7,6 +7,7 @@ import { getPopularPosts } from '../api/dashboard';
 import { getTests } from '../api/codetest';
 import { galleryApi } from '../api/gallery';
 import { useAuth } from '../context/AuthContext';
+import MyCodingTestWidget from '../components/codetest/MyCodingTestWidget';
 import type { Post } from '../types/board';
 import type { Event } from '../api/events';
 import type { PopularPost } from '../api/dashboard';
@@ -147,6 +148,9 @@ const HomePage: React.FC = () => {
                     <Link to="/contest" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-dark-line hover:bg-brand-light hover:text-white transition-colors text-base">
                       코딩테스트 응시
                     </Link>
+                    <Link to="/contest/ranking" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-transparent text-dark-text font-bold border border-dark-line hover:bg-brand-light hover:text-white transition-colors text-base">
+                      랭킹 보기
+                    </Link>
                     <Link to="/events" className="w-full sm:w-auto px-4 py-3 rounded-2xl bg-brand text-white font-bold border border-dark-line hover:bg-brand-light transition-colors text-base">
                       활동 보기
                     </Link>
@@ -257,6 +261,12 @@ const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {isAuthenticated && (
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-2 mb-6">
+          <MyCodingTestWidget />
+        </div>
+      )}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 space-y-12 pb-12">
         <section>

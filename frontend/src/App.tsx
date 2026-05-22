@@ -27,6 +27,7 @@ const ContestDetailPage = lazy(() => import('./pages/codetest/ContestDetailPage'
 const ProblemSolvePage = lazy(() => import('./pages/codetest/ProblemSolvePage'));
 const PracticePage = lazy(() => import('./pages/codetest/PracticePage'));
 const SubmissionHistoryPage = lazy(() => import('./pages/codetest/SubmissionHistoryPage'));
+const RankingPage = lazy(() => import('./pages/codetest/RankingPage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
 const CodetestAdminPage = lazy(() => import('./pages/admin/CodetestAdminPage'));
 const CodetestTestDetailPage = lazy(() => import('./pages/admin/CodetestTestDetailPage'));
@@ -153,6 +154,7 @@ function App() {
             <Route path="/board" element={<BoardListPage />} />
             <Route path="/boards" element={<Navigate to="/board" replace />} />
             <Route path="/gallery/share/:token" element={<SharedAlbumPage />} />
+            <Route path="/contest/ranking" element={<RankingPage />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>

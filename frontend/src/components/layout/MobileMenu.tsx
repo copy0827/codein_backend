@@ -42,6 +42,7 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           <NavLink to="/contest" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">
             코딩테스트
           </NavLink>
+          <NavLink to="/contest/ranking" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">랭킹</NavLink>
           <NavLink to="/contest/history" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">제출내역</NavLink>
           <NavLink to="/creators" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">만든사람들</NavLink>
           {canAccessAdmin && (

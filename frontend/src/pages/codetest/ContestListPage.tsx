@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { format, isBefore, isWithinInterval } from 'date-fns';
-import { Calendar, Clock, FileCode, ChevronRight, Terminal } from 'lucide-react';
+import { Calendar, Clock, FileCode, ChevronRight, LayoutList, Terminal } from 'lucide-react';
 import { getTests } from '../../api/codetest';
 import type { Test } from '../../types/codetest';
 
@@ -71,12 +71,21 @@ const ContestListPage: React.FC = () => {
           </h1>
           <p className="text-gray-600 mt-1">코딩 테스트에 참여하여 알고리즘 실력을 향상시키세요.</p>
         </div>
-        <Link 
-          to="/practice" 
-          className="px-5 py-2.5 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 font-medium transition-colors shadow-sm"
-        >
-          연습 문제
-        </Link>
+        <div className="flex flex-wrap gap-2">
+          <Link
+            to="/contest/ranking"
+            className="px-5 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium transition-colors shadow-sm inline-flex items-center gap-2"
+          >
+            <LayoutList className="w-4 h-4" />
+            랭킹
+          </Link>
+          <Link
+            to="/practice"
+            className="px-5 py-2.5 bg-white border border-indigo-600 text-indigo-600 rounded-lg hover:bg-indigo-50 font-medium transition-colors shadow-sm"
+          >
+            연습 문제
+          </Link>
+        </div>
       </div>
 
       <div className="mb-4 flex flex-wrap gap-2">

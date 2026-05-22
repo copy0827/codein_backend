@@ -21,6 +21,7 @@ import {
   Calendar,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import MyCodingTestWidget from '../components/codetest/MyCodingTestWidget';
 
 const ROLE_LABELS: Record<string, string> = {
   guest: '게스트',
@@ -407,6 +408,8 @@ const ProfilePage: React.FC = () => {
               <div className="mt-6 text-sm text-dark-muted">포인트 정보를 불러올 수 없습니다.</div>
             )}
           </div>
+
+          <MyCodingTestWidget />
         </div>
 
         {/* Right Column: Settings */}
