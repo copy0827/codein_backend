@@ -1,5 +1,21 @@
 import api from './axios';
-import type { Board, Post, CreatePostPayload, UpdatePostPayload, PostFilter, PostAttachment, PostReadStatusResponse, BoardCreatePayload, BoardUpdatePayload } from '../types/board';
+import type {
+  Board,
+  Post,
+  CreatePostPayload,
+  UpdatePostPayload,
+  PostFilter,
+  PostAttachment,
+  PostReadStatusResponse,
+  BoardCreatePayload,
+  BoardUpdatePayload,
+  ShowcaseCreatePayload,
+  ShowcaseDetail,
+  ShowcaseListParams,
+  ShowcaseListResponse,
+  ShowcaseUpdatePayload,
+  GitHubRepoResponse,
+} from '../types/board';
 
 export const getBoards = async (): Promise<Board[]> => {
   const response = await api.get<Board[]>('/boards');
@@ -78,4 +94,42 @@ export const updatePost = async (boardId: number, postId: number, data: UpdatePo
 
 export const deletePost = async (boardId: number, postId: number): Promise<void> => {
   await api.delete(`/boards/${boardId}/posts/${postId}`);
+};
+
+// ——— Case 1: 프로젝트 전시 / 기술 블로그 ———
+
+export const getShowcasePosts = async (
+  params: ShowcaseListParams,
+): Promise<ShowcaseListResponse> => {
+  const response = await api.get<ShowcaseListResponse>('/boards', { params });
+  return response.data;
+};
+
+export const getShowcasePost = async (postId: number): Promise<ShowcaseDetail> => {
+  const response = await api.get<ShowcaseDetail>(`/boards/${postId}`);
+  return response.data;
+};
+
+export const createShowcasePost = async (
+  data: ShowcaseCreatePayload,
+): Promise<ShowcaseDetail> => {
+  const response = await api.post<ShowcaseDetail>('/boards', data);
+  return response.data;
+};
+
+export const updateShowcasePost = async (
+  postId: number,
+  data: ShowcaseUpdatePayload,
+): Promise<ShowcaseDetail> => {
+  const response = await api.put<ShowcaseDetail>(`/boards/${postId}`, data);
+  return response.data;
+};
+
+export const deleteShowcasePost = async (postId: number): Promise<void> => {
+  await api.delete(`/boards/${postId}`);
+};
+
+export const getShowcaseGitHubInfo = async (postId: number): Promise<GitHubRepoResponse> => {
+  const response = await api.get<GitHubRepoResponse>(`/boards/${postId}/github`);
+  return response.data;
 };

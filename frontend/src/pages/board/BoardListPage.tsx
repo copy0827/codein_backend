@@ -2,8 +2,11 @@ import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { getBoards, getBoardPosts } from '../../api/board';
 import type { Board, Post } from '../../types/board';
+import type { ShowcaseBoardType } from '../../types/board';
 import { useAuth } from '../../context/AuthContext';
-import { Megaphone, MessageSquare, ChevronRight, Home, PencilLine, Eye } from 'lucide-react';
+import { useBoardPermissions } from '../../hooks/useBoardPermissions';
+import ShowcaseBoardPanel from '../../components/board/ShowcaseBoardPanel';
+import { Megaphone, MessageSquare, ChevronRight, Home, PencilLine, Eye, Layers, BookOpen } from 'lucide-react';
 
 const getPreferredBoardId = (availableBoards: Board[], search: string) => {
   if (availableBoards.length === 0) return null;
@@ -33,10 +36,22 @@ const getPreferredBoardId = (availableBoards: Board[], search: string) => {
   return availableBoards[0].id;
 };
 
+type PageMode = 'showcase' | 'community';
+
 const BoardListPage: React.FC = () => {
   const { user } = useAuth();
+  const { canWrite } = useBoardPermissions();
   const location = useLocation();
   const navigate = useNavigate();
+
+  const searchParams = new URLSearchParams(location.search);
+  const [pageMode, setPageMode] = useState<PageMode>(
+    searchParams.get('tab') === 'community' ? 'community' : 'showcase',
+  );
+  const [showcaseType, setShowcaseType] = useState<ShowcaseBoardType>(
+    searchParams.get('board_type') === 'BLOG' ? 'BLOG' : 'PROJECT',
+  );
+
   const [boards, setBoards] = useState<Board[]>([]);
   const [selectedBoardId, setSelectedBoardId] = useState<number | null>(null);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -73,6 +88,7 @@ const BoardListPage: React.FC = () => {
   }, [location.search, location.state, user]);
 
   useEffect(() => {
+    if (pageMode !== 'community') return;
     if (selectedBoardId) {
       const fetchPosts = async () => {
         setLoading(true);
@@ -89,7 +105,21 @@ const BoardListPage: React.FC = () => {
       };
       fetchPosts();
     }
-  }, [selectedBoardId, isNoticeBoard]);
+  }, [selectedBoardId, isNoticeBoard, pageMode]);
+
+  const syncUrl = (mode: PageMode, type?: ShowcaseBoardType) => {
+    const params = new URLSearchParams();
+    if (mode === 'community') {
+      params.set('tab', 'community');
+      if (selectedBoardId) params.set('board', String(selectedBoardId));
+    } else {
+      params.set('tab', 'showcase');
+      params.set('board_type', type || showcaseType);
+    }
+    navigate(`/board?${params.toString()}`, { replace: true });
+  };
+
+  const defaultShowcaseBoardId = boards.find((b) => b.board_type === 'general')?.id ?? boards[0]?.id;
 
   const getNoticeBadge = (type?: string | null, isBlinded?: boolean) => {
     const badges = [];
@@ -157,21 +187,89 @@ const BoardListPage: React.FC = () => {
         )}
       </nav>
 
+      <div className="mb-6">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-dark-text">게시판</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              프로젝트 전시·기술 블로그와 커뮤니티 소식을 확인하세요.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-2 p-1 bg-gray-100 rounded-xl w-full sm:w-fit">
+          <button
+            type="button"
+            onClick={() => {
+              setPageMode('showcase');
+              setShowcaseType('PROJECT');
+              syncUrl('showcase', 'PROJECT');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              pageMode === 'showcase' && showcaseType === 'PROJECT'
+                ? 'bg-white text-violet-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <Layers className="w-4 h-4" />
+            프로젝트 전시
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPageMode('showcase');
+              setShowcaseType('BLOG');
+              syncUrl('showcase', 'BLOG');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              pageMode === 'showcase' && showcaseType === 'BLOG'
+                ? 'bg-white text-emerald-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <BookOpen className="w-4 h-4" />
+            기술 블로그
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setPageMode('community');
+              syncUrl('community');
+            }}
+            className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition-all ${
+              pageMode === 'community'
+                ? 'bg-white text-blue-700 shadow-sm'
+                : 'text-gray-600 hover:text-gray-900'
+            }`}
+          >
+            <MessageSquare className="w-4 h-4" />
+            커뮤니티
+          </button>
+        </div>
+      </div>
+
+      {pageMode === 'showcase' ? (
+        <ShowcaseBoardPanel
+          boardType={showcaseType}
+          defaultBoardId={defaultShowcaseBoardId}
+        />
+      ) : (
+        <>
       <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6">
         <div className="flex items-start sm:items-center gap-3">
           <div className={`p-2 rounded-lg ${isNoticeBoard ? 'bg-indigo-100 text-indigo-600' : 'bg-blue-100 text-blue-600'}`}>
             {isNoticeBoard ? <Megaphone className="w-6 h-6" /> : <MessageSquare className="w-6 h-6" />}
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-dark-text">
+            <h2 className="text-xl font-bold text-dark-text">
               {isNoticeBoard ? '공지사항' : selectedBoard?.name || '커뮤니티'}
-            </h1>
+            </h2>
             <p className="text-sm text-gray-500 mt-1">
               {isNoticeBoard ? '중요한 소식과 안내를 확인하세요.' : '자유로운 소통과 정보를 공유하는 공간입니다.'}
             </p>
           </div>
         </div>
-        {user && selectedBoardId !== 2 && (!isNoticeBoard || ['staff', 'admin', 'superadmin'].includes(user.role)) && (
+        {canWrite && selectedBoardId !== 2 && (!isNoticeBoard || ['staff', 'admin', 'superadmin'].includes(user!.role)) && (
           <Link
             to="/board/write"
             state={{ boardId: selectedBoardId }}
@@ -303,6 +401,8 @@ const BoardListPage: React.FC = () => {
           </ul>
         )}
       </div>
+        </>
+      )}
     </div>
   );
 };

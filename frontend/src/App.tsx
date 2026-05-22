@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, Navigate, Outlet, useLocation }
 import { AuthProvider, useAuth } from './context/AuthContext';
 import { Toaster } from 'react-hot-toast';
 import Layout from './components/layout/Layout';
+import QueryProvider from './providers/QueryProvider';
 
 // Lazy-loaded pages
 const LoginPage = lazy(() => import('./pages/LoginPage'));
@@ -14,6 +15,7 @@ const ActivityPage = lazy(() => import('./pages/ActivityPage'));
 const BoardListPage = lazy(() => import('./pages/board/BoardListPage'));
 const PostWritePage = lazy(() => import('./pages/board/PostWritePage'));
 const PostDetailPage = lazy(() => import('./pages/board/PostDetailPage'));
+const ShowcasePostDetailPage = lazy(() => import('./pages/board/ShowcasePostDetailPage'));
 const GalleryListPage = lazy(() => import('./pages/gallery/GalleryListPage'));
 const AlbumDetailPage = lazy(() => import('./pages/gallery/AlbumDetailPage'));
 const SharedAlbumPage = lazy(() => import('./pages/gallery/SharedAlbumPage'));
@@ -136,6 +138,7 @@ function App() {
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme }}>
+    <QueryProvider>
     <AuthProvider>
       <Router>
         <Routes>
@@ -158,6 +161,7 @@ function App() {
             <Route path="/activity" element={<ActivityPage />} />
             
             <Route path="/board/write" element={<PostWritePage />} />
+            <Route path="/board/showcase/:postId" element={<ShowcasePostDetailPage />} />
             <Route path="/board/:boardId/post/:postId" element={<PostDetailPage />} />
             <Route path="/contest" element={<ContestListPage />} />
             <Route path="/contest/:testId" element={<ContestDetailPage />} />
@@ -189,6 +193,7 @@ function App() {
       </Router>
       <Toaster position="top-right" />
     </AuthProvider>
+    </QueryProvider>
     </ThemeContext.Provider>
   );
 }

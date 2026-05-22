@@ -100,3 +100,119 @@ export interface NoticeListResponse {
   total: number;
   notices: Post[];
 }
+
+// ——— Case 1: 프로젝트 전시 / 기술 블로그 ———
+
+export type ShowcaseBoardType = 'PROJECT' | 'BLOG';
+
+export type ShowcaseSearchType = 'title' | 'author';
+
+/** Case 1 게시글 공통 필드 (목록·상세) */
+export interface ShowcasePostFields {
+  board_type: ShowcaseBoardType | null;
+  tech_stack: string[];
+  github_url?: string | null;
+  period?: string | null;
+  team_info?: string | Record<string, unknown> | unknown[] | null;
+  category?: string | null;
+  is_published: boolean;
+  has_github: boolean;
+  views: number;
+  comment_count: number;
+}
+
+export interface ShowcaseCommentAuthor {
+  id: number;
+  name: string;
+  profile_image?: string | null;
+  rank: string;
+}
+
+export interface ShowcaseCommentItem {
+  id: number;
+  post_id: number;
+  author_id: number;
+  parent_id?: number | null;
+  content: string;
+  is_blinded: boolean;
+  is_deleted: boolean;
+  created_at: string;
+  updated_at?: string | null;
+  author?: ShowcaseCommentAuthor | null;
+  replies: ShowcaseCommentItem[];
+}
+
+export interface ShowcaseListItem extends ShowcasePostFields {
+  id: number;
+  title: string;
+  board_id: number;
+  author_id: number;
+  is_pinned: boolean;
+  created_at: string;
+  updated_at?: string | null;
+  author?: User | null;
+}
+
+export interface ShowcaseListResponse {
+  total: number;
+  page: number;
+  size: number;
+  total_pages: number;
+  items: ShowcaseListItem[];
+}
+
+export interface ShowcaseDetail extends ShowcaseListItem {
+  content: string;
+  is_hidden: boolean;
+  is_blinded: boolean;
+  comments: ShowcaseCommentItem[];
+}
+
+export interface ShowcaseCreatePayload {
+  title: string;
+  content: string;
+  board_type: ShowcaseBoardType;
+  board_id: number;
+  tech_stack?: string[];
+  period?: string;
+  github_url?: string;
+  team_info?: string | Record<string, unknown> | unknown[];
+  category?: string;
+  is_published?: boolean;
+}
+
+export type ShowcaseUpdatePayload = Partial<ShowcaseCreatePayload>;
+
+export interface ShowcaseListParams {
+  board_type: ShowcaseBoardType;
+  page?: number;
+  size?: number;
+  search_keyword?: string;
+  search_type?: ShowcaseSearchType;
+}
+
+// ——— GitHub 연동 API 응답 ———
+
+export interface GitHubCommitItem {
+  sha: string;
+  message: string;
+  author_name?: string | null;
+  committed_at: string;
+}
+
+export interface GitHubAuthorCommitStats {
+  author: string;
+  commit_count: number;
+}
+
+export interface GitHubRepoResponse {
+  repository_name: string;
+  description?: string | null;
+  last_updated?: string | null;
+  total_commits: number;
+  recent_commits: GitHubCommitItem[];
+  author_commit_counts: GitHubAuthorCommitStats[];
+}
+
+/** @deprecated GitHubRepoResponse 사용 */
+export type ShowcaseGitHubResponse = GitHubRepoResponse;
