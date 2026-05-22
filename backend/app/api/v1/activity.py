@@ -11,7 +11,7 @@ from typing import Optional
 from app.core.deps import get_db, get_current_user, require_roles
 from app.models.user import User
 from app.models.activity import ActivityLog, ACTIVITY_POINTS, ACTIVITY_DESCRIPTIONS
-from app.schemas.activity import (
+from app.schemas.activity_log import (
     ActivityLogOut,
     ActivityLogCreate,
     ActivityHistoryOut,

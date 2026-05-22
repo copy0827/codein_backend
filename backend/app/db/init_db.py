@@ -5,6 +5,7 @@ from sqlalchemy import select, func
 from app.core.security import hash_password
 from app.db.session import engine, async_session
 from app.models.activity import ActivityLog
+from app.models.activity_recruitment import ActivityApplication, ActivityRecruitment
 from app.models.base import Base
 from app.models.board import Board, Post, PostReadLog
 from app.models.codetest import (

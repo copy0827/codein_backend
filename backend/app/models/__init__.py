@@ -7,6 +7,13 @@ from app.models.event import Event
 from app.models.notification import Notification
 from app.models.report import Report
 from app.models.activity import ActivityLog
+from app.models.activity_recruitment import (
+    ActivityApplication,
+    ActivityRecruitment,
+    ApplicationStatus,
+    RecruitmentStatus,
+    RecruitmentType,
+)
 from app.models.codetest import LanguageRuntime, Test, Problem, TestCase, Submission
 from app.models.codetest_ranking import (
     CodeTestStatPeriodType,
@@ -26,6 +33,11 @@ __all__ = [
     "Notification",
     "Report",
     "ActivityLog",
+    "ActivityRecruitment",
+    "ActivityApplication",
+    "RecruitmentType",
+    "RecruitmentStatus",
+    "ApplicationStatus",
     "LanguageRuntime",
     "Test",
     "Problem",
