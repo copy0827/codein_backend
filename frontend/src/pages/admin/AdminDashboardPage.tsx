@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState, type FC } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { toast } from 'react-hot-toast';
 import { useAuth } from '../../context/AuthContext';
@@ -23,6 +24,7 @@ import {
 import { getBoards, createBoard, updateBoard, deleteBoard, reorderBoards } from '../../api/board';
 import type { Board } from '../../types/board';
 import UserDetailModal from '../../components/admin/UserDetailModal';
+import AdminAttendanceView from '../../components/admin/AdminAttendanceView';
 import { getReports, type Report } from '../../api/reports';
 
 const ROLES = ['member', 'staff', 'admin', 'superadmin'];
@@ -43,9 +45,51 @@ const RANK_LABELS: Record<string, string> = {
   diamond: '다이아'
 };
 
+type AdminTab = 'overview' | 'templates' | 'users' | 'boards' | 'audit' | 'attendance';
+
+const ADMIN_TABS: AdminTab[] = [
+  'overview',
+  'templates',
+  'users',
+  'boards',
+  'audit',
+  'attendance',
+];
+
 const AdminDashboardPage: FC = () => {
   const { user: currentUser } = useAuth();
-  const [activeTab, setActiveTab] = useState<'overview' | 'templates' | 'users' | 'boards' | 'audit'>('overview');
+  const [searchParams, setSearchParams] = useSearchParams();
+  const tabFromUrl = searchParams.get('tab') as AdminTab | null;
+  const isAttendanceAdmin = ['admin', 'superadmin'].includes(currentUser?.role || '');
+
+  const resolveInitialTab = (): AdminTab => {
+    if (tabFromUrl === 'attendance' && isAttendanceAdmin) return 'attendance';
+    if (tabFromUrl && ADMIN_TABS.includes(tabFromUrl) && tabFromUrl !== 'attendance') {
+      return tabFromUrl;
+    }
+    return 'overview';
+  };
+
+  const [activeTab, setActiveTab] = useState<AdminTab>(resolveInitialTab);
+
+  const changeTab = (tab: AdminTab) => {
+    setActiveTab(tab);
+    if (tab === 'overview') {
+      setSearchParams({}, { replace: true });
+    } else {
+      setSearchParams({ tab }, { replace: true });
+    }
+  };
+
+  useEffect(() => {
+    if (tabFromUrl === 'attendance' && isAttendanceAdmin) {
+      setActiveTab('attendance');
+      return;
+    }
+    if (tabFromUrl && ADMIN_TABS.includes(tabFromUrl) && tabFromUrl !== 'attendance') {
+      setActiveTab(tabFromUrl);
+    }
+  }, [tabFromUrl, isAttendanceAdmin]);
   const [stats, setStats] = useState<AdminStats | null>(null);
   const [statsLoading, setStatsLoading] = useState(true);
   const [templates, setTemplates] = useState<NoticeTemplate[]>([]);
@@ -424,7 +468,7 @@ const AdminDashboardPage: FC = () => {
             <button
               key={tab}
               type="button"
-              onClick={() => setActiveTab(tab)}
+              onClick={() => changeTab(tab)}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === tab ? 'bg-white text-gray-900 shadow-sm' : 'text-dark-muted hover:text-dark-text'
                 }`}
             >
@@ -434,31 +478,41 @@ const AdminDashboardPage: FC = () => {
           ))}
           <button
             type="button"
-            onClick={() => setActiveTab('boards')}
+            onClick={() => changeTab('boards')}
             className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'boards' ? 'bg-white text-gray-900 shadow-sm' : 'text-dark-muted hover:text-dark-text'
               }`}
           >
             게시판 관리
           </button>
           {['admin', 'superadmin'].includes(currentUser?.role || '') && (
-            <button
-              type="button"
-              onClick={() => setActiveTab('users')}
-              className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-white text-gray-900 shadow-sm' : 'text-dark-muted hover:text-dark-text'
-                }`}
-            >
-              사용자
-              {pendingApprovalCount > 0 && (
-                <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-amber-300 px-1 text-[11px] font-semibold text-gray-900">
-                  {pendingApprovalCount}
-                </span>
-              )}
-            </button>
+            <>
+              <button
+                type="button"
+                onClick={() => changeTab('attendance')}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'attendance' ? 'bg-white text-gray-900 shadow-sm' : 'text-dark-muted hover:text-dark-text'
+                  }`}
+              >
+                출석 현황
+              </button>
+              <button
+                type="button"
+                onClick={() => changeTab('users')}
+                className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all flex items-center gap-2 ${activeTab === 'users' ? 'bg-white text-gray-900 shadow-sm' : 'text-dark-muted hover:text-dark-text'
+                  }`}
+              >
+                사용자
+                {pendingApprovalCount > 0 && (
+                  <span className="inline-flex min-w-[20px] items-center justify-center rounded-full bg-amber-300 px-1 text-[11px] font-semibold text-gray-900">
+                    {pendingApprovalCount}
+                  </span>
+                )}
+              </button>
+            </>
           )}
           {['superadmin'].includes(currentUser?.role || '') && (
             <button
               type="button"
-              onClick={() => setActiveTab('audit')}
+              onClick={() => changeTab('audit')}
               className={`px-4 py-2 text-sm font-semibold rounded-lg transition-all ${activeTab === 'audit' ? 'bg-white text-gray-900 shadow-sm' : 'text-dark-muted hover:text-dark-text'}`}
             >
               감사로그
@@ -466,6 +520,8 @@ const AdminDashboardPage: FC = () => {
           )}
         </div>
       </div>
+
+      {activeTab === 'attendance' && <AdminAttendanceView />}
 
       {activeTab === 'overview' && (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, Link } from 'react-router-dom';
-import { Bell, LogOut, Search, Sun, Moon } from 'lucide-react';
+import { Bell, CalendarCheck, ClipboardList, LogOut, Search, Sun, Moon } from 'lucide-react';
 import { useTheme } from '../../App';
 import { useAuth } from '../../context/AuthContext';
 
@@ -12,7 +12,10 @@ interface MobileMenuProps {
 const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
   const { user, logout, isAuthenticated } = useAuth();
   const { theme, toggleTheme } = useTheme();
-  const canAccessAdmin = isAuthenticated && user && ['staff', 'admin', 'superadmin'].includes(user.role);
+  const canAccessAdmin =
+    isAuthenticated && user && ['staff', 'admin', 'superadmin'].includes(user.role);
+  const canAccessAttendanceAdmin =
+    isAuthenticated && user && ['admin', 'superadmin'].includes(user.role);
 
   return (
     <>
@@ -38,6 +41,10 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           <NavLink to="/board?board=notice" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">공지</NavLink>
           <NavLink to="/board?board=board" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">게시판</NavLink>
           <NavLink to="/events" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">캘린더</NavLink>
+          <NavLink to="/check-in" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors flex items-center gap-2">
+            <CalendarCheck className="w-5 h-5 text-brand" />
+            출석 체크
+          </NavLink>
           <NavLink to="/activities" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">
             활동 모집
           </NavLink>
@@ -56,6 +63,16 @@ const MobileMenu: React.FC<MobileMenuProps> = ({ isOpen, onClose }) => {
           <NavLink to="/creators" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">만든사람들</NavLink>
           {canAccessAdmin && (
             <NavLink to="/admin" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">관리자</NavLink>
+          )}
+          {canAccessAttendanceAdmin && (
+            <NavLink
+              to="/admin?tab=attendance"
+              onClick={onClose}
+              className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors flex items-center gap-2 pl-6"
+            >
+              <ClipboardList className="w-4 h-4 text-brand" />
+              출석 현황 관리
+            </NavLink>
           )}
           <NavLink to="/profile" onClick={onClose} className="px-3 py-3 rounded-xl text-base font-medium text-dark-muted hover:text-dark-text hover:bg-dark-nav transition-colors">마이페이지</NavLink>
         </div>

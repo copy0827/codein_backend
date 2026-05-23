@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { Search, Settings, RefreshCw, ArrowRight, Calendar, MapPin } from 'lucide-react';
+import { Search, Settings, RefreshCw, ArrowRight, Calendar, MapPin, CalendarCheck } from 'lucide-react';
 import { getNotices } from '../api/board';
 import { getEventOccurrences } from '../api/events';
 import { getPopularPosts } from '../api/dashboard';
@@ -682,7 +682,17 @@ const HomePage: React.FC = () => {
           <h2 className="text-2xl font-bold text-dark-text mb-2">바로가기</h2>
           <p className="text-dark-muted">필요한 페이지로 빠르게 이동하세요.</p>
         </div>
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-6">
+          <Link to="/check-in" className="group p-6 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-brand/50 transition-colors">
+            <div className="mb-2 flex items-center gap-2 text-brand">
+              <CalendarCheck className="h-5 w-5" aria-hidden />
+              <h3 className="text-xl font-bold text-dark-text group-hover:text-brand-light transition-colors">출석 체크</h3>
+            </div>
+            <p className="text-dark-muted mb-4">매일 출석·스탬프 보상</p>
+            <span className="text-sm text-brand font-medium flex items-center gap-1">
+              이동 <ArrowRight className="w-4 h-4" />
+            </span>
+          </Link>
           <Link to="/activities" className="group p-6 rounded-2xl bg-dark-cardSoft border border-dark-line hover:border-emerald-500/50 transition-colors">
             <h3 className="text-xl font-bold text-dark-text mb-2 group-hover:text-emerald-400 transition-colors">활동 모집</h3>
             <p className="text-dark-muted mb-4">스터디·프로젝트·멘토-멘티</p>

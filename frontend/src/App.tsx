@@ -31,6 +31,7 @@ const RankingPage = lazy(() => import('./pages/codetest/RankingPage'));
 const ActivityListPage = lazy(() => import('./pages/activity/ActivityListPage'));
 const ActivityDetailPage = lazy(() => import('./pages/activity/ActivityDetailPage'));
 const ActivityWritePage = lazy(() => import('./pages/activity/ActivityWritePage'));
+const AttendancePage = lazy(() => import('./pages/attendance/AttendancePage'));
 const AdminDashboardPage = lazy(() => import('./pages/admin/AdminDashboardPage'));
 const CodetestAdminPage = lazy(() => import('./pages/admin/CodetestAdminPage'));
 const CodetestTestDetailPage = lazy(() => import('./pages/admin/CodetestTestDetailPage'));
@@ -161,6 +162,7 @@ function App() {
             <Route path="/activities" element={<ActivityListPage />} />
             <Route path="/activities/write" element={<ActivityWritePage />} />
             <Route path="/activities/:activityId" element={<ActivityDetailPage />} />
+            <Route path="/check-in" element={<AttendancePage />} />
           </Route>
 
           <Route element={<ProtectedRoute />}>
@@ -184,7 +186,6 @@ function App() {
             <Route path="/calendar" element={<Navigate to="/events" replace />} />
             <Route path="/events/:eventId" element={<EventDetailPage />} />
             <Route path="/notifications" element={<NotificationsPage />} />
-            <Route path="/check-in" element={<div className="text-center mt-10">Check-in Page (Coming Soon)</div>} />
           </Route>
 
           <Route element={<AdminRoute />}>

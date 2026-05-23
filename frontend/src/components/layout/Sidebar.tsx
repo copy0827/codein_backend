@@ -24,7 +24,7 @@ const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
     { name: 'Boards', href: '/boards', icon: MessageSquare },
     { name: 'Gallery', href: '/gallery', icon: ImageIcon },
     { name: 'Calendar', href: '/events', icon: CalendarIcon },
-    { name: 'Check-in', href: '/check-in', icon: QrCode },
+    { name: '출석 체크', href: '/check-in', icon: QrCode },
     { name: 'Profile', href: '/profile', icon: User },
   ];
 
